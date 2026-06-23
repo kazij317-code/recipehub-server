@@ -53,6 +53,20 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
+const verifyUser = (req, res, next) => {
+  if (req.user.role !== "user") {
+    return res.status(403).json({ status: false, message: "Forbidden" });
+  }
+  next();
+};
+
+const verifyAdmin = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ status: false, message: "Forbidden" });
+  }
+  next();
+};
+
 
 const database = client.db("recipehub_db");
 
