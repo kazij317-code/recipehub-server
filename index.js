@@ -116,6 +116,35 @@ app.get("/api/recipes/:id", async (req, res) => {
       res.status(200).json({ data: recipes });
     });
 
+app.post("/api/recipes", verifyToken, verifyUser, async (req, res) => {
+      const userEmail = req.user?.email;
+      if (!userEmail) {
+        return res.status(400).json({ status: false, message: "User email not found in token" });
+      }
+
+      const dbUser = await userCollection.findOne({ email: userEmail });
+      const isPremium = dbUser?.plan === "premium" || dbUser?.isPremium === true;
+
+      if (!isPremium) {
+        const recipeCount = await recipesCollection.countDocuments({ userEmail });
+        if (recipeCount >= 2) {
+          return res.status(403).json({
+            status: false,
+            message: "Recipe limit reached. Basic accounts are limited to 2 recipes. Please upgrade to Premium."
+          });
+        }
+      }
+
+      const body = req.body;
+      const data = { ...body, createdAt: new Date() };
+      const result = await recipesCollection.insertOne(data);
+      res.status(201).json({
+        status: true,
+        message: "recipe created successfully",
+        data: result,
+      });
+    });
+
 await client.connect();
 await client.db("admin").command({ ping: 1 });
 
