@@ -158,6 +158,41 @@ if (!isPremium) {
           });
         }
       }
+
+app.put("/api/recipes/:id", verifyToken, verifyUser, async (req, res) => {
+      const { id } = req.params;
+      const body = req.body;
+
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ status: false, message: "Invalid recipe id" });
+      }
+
+      try {
+        const recipe = await recipesCollection.findOne({ _id: new ObjectId(id) });
+        if (!recipe) {
+          return res.status(404).json({ status: false, message: "Recipe not found" });
+        }
+
+        // Verify ownership
+        if (recipe.userEmail !== req.user.email) {
+          return res.status(403).json({ status: false, message: "Forbidden" });
+        }
+
+        const result = await recipesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { ...body, updatedAt: new Date() } }
+        );
+
+        res.status(200).json({
+          status: true,
+          message: "Recipe updated successfully",
+          data: result,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: "Server error" });
+      }
+    });
 await client.connect();
 await client.db("admin").command({ ping: 1 });
 
