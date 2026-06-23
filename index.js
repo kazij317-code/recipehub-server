@@ -91,8 +91,41 @@ async function run() {
     });
 
     app.get("/api/allrecipes", async (req, res) => {
-      const recipes = await recipesCollection.find({}).toArray();
-      res.status(200).json({ data: recipes });
+      try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 9;
+        const categoriesQuery = req.query.categories;
+
+        let filter = {};
+        if (categoriesQuery) {
+          const categoryList = Array.isArray(categoriesQuery)
+            ? categoriesQuery
+            : categoriesQuery.split(",").map(c => c.trim()).filter(Boolean);
+
+          if (categoryList.length > 0) {
+            filter.category = { $in: categoryList };
+          }
+        }
+
+        const skip = (page - 1) * limit;
+        const totalCount = await recipesCollection.countDocuments(filter);
+        const recipes = await recipesCollection.find(filter)
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        res.status(200).json({
+          data: recipes,
+          pagination: {
+            page,
+            limit,
+            totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+          }
+        });
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
     });
 
     app.get("/api/recipes/:id", async (req, res) => {
