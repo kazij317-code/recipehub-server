@@ -7,8 +7,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const {
- createRemoteJWKSet,
- jwtVerify
+  createRemoteJWKSet,
+  jwtVerify
 } = require("jose-cjs");
 dotenv.config();
 
@@ -31,7 +31,7 @@ const client = new MongoClient(uri, {
 });
 
 const JWKS = createRemoteJWKSet(
- new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
+  new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
 );
 
 const verifyToken = async (req, res, next) => {
@@ -77,18 +77,35 @@ const userCollection =
   database.collection("user");
 
 app.patch("/api/user/:id", async (req, res) => {
-      const { id } = req.params;
-      const query = ObjectId.isValid(id) ? { _id: new ObjectId(id) } : { _id: id };
-      const result = await userCollection.updateOne(
-        query,
-        { $inc: { limit: 1 } },
-      );
-      res.status(200).json({
-        success: true,
-        message: "Limit increased successfully",
-        data: result,
-      });
-    });
+  const { id } = req.params;
+  const query = ObjectId.isValid(id) ? { _id: new ObjectId(id) } : { _id: id };
+  const result = await userCollection.updateOne(
+    query,
+    { $inc: { limit: 1 } },
+  );
+  res.status(200).json({
+    success: true,
+    message: "Limit increased successfully",
+    data: result,
+  });
+});
+
+app.get("/api/allrecipes", async (req, res) => {
+  const recipes = await recipesCollection.find({}).toArray();
+  res.status(200).json({ data: recipes });
+});
+
+app.get("/api/recipes/:id", async (req, res) => {
+  const { id } = req.params;
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ status: false, message: "Invalid recipe id" });
+  }
+  const recipe = await recipesCollection.findOne({ _id: new ObjectId(id) });
+  if (!recipe) {
+    return res.status(404).json({ status: false, message: "Recipe not found" });
+  }
+  res.status(200).json({ data: recipe });
+});
 
 await client.connect();
 await client.db("admin").command({ ping: 1 });
