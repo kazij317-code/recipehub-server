@@ -26,4 +26,16 @@ const client = new MongoClient(uri, {
   },
 });
 
+const database = client.db("recipehub_db");
+
+const recipesCollection =
+  database.collection("recipes");
+
+const userCollection =
+  database.collection("user");
+
+
+await client.connect();
+await client.db("admin").command({ ping: 1 });
+
 app.listen(PORT);
