@@ -145,6 +145,19 @@ app.post("/api/recipes", verifyToken, verifyUser, async (req, res) => {
       });
     });
 
+const dbUser = await userCollection.findOne({ email: userEmail });
+      const isPremium = dbUser?.plan === "premium" || dbUser?.isPremium === true;
+
+
+if (!isPremium) {
+        const recipeCount = await recipesCollection.countDocuments({ userEmail });
+        if (recipeCount >= 2) {
+          return res.status(403).json({
+            status: false,
+            message: "Recipe limit reached. Basic accounts are limited to 2 recipes. Please upgrade to Premium."
+          });
+        }
+      }
 await client.connect();
 await client.db("admin").command({ ping: 1 });
 
