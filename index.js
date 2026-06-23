@@ -107,6 +107,15 @@ app.get("/api/recipes/:id", async (req, res) => {
   res.status(200).json({ data: recipe });
 });
 
+  app.get("/api/user-recipes", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        return res.status(400).json({ status: false, message: "Email is required" });
+      }
+      const recipes = await recipesCollection.find({ userEmail: email }).toArray();
+      res.status(200).json({ data: recipes });
+    });
+
 await client.connect();
 await client.db("admin").command({ ping: 1 });
 
