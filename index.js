@@ -76,6 +76,19 @@ const recipesCollection =
 const userCollection =
   database.collection("user");
 
+app.patch("/api/user/:id", async (req, res) => {
+      const { id } = req.params;
+      const query = ObjectId.isValid(id) ? { _id: new ObjectId(id) } : { _id: id };
+      const result = await userCollection.updateOne(
+        query,
+        { $inc: { limit: 1 } },
+      );
+      res.status(200).json({
+        success: true,
+        message: "Limit increased successfully",
+        data: result,
+      });
+    });
 
 await client.connect();
 await client.db("admin").command({ ping: 1 });
