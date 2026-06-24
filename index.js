@@ -68,10 +68,19 @@ const verifyAdmin = (req, res, next) => {
   }
   next();
 };
+// ------------------
+// async function run() {
+//   try {
+//     await client.connect();
 
-async function run() {
-  try {
-    await client.connect();
+// -----------------------
+// --------------------
+client.connect(() => {
+  console.log('connecting to Mongo db')
+}).catch(console.dir)
+// --------------------
+
+
     const database = client.db("recipehub_db");
     const recipesCollection = database.collection("recipes");
     const userCollection = database.collection("user");
@@ -245,13 +254,20 @@ async function run() {
     });
 
     // await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // await client.close();
-  }
-}
-run().catch(console.dir);
+    // -------------------
+//     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+//   } finally {
+//     // await client.close();
+//   }
+// }
+// run().catch(console.dir);
+
+// ---------------------
 
 app.listen(PORT, () => {
   console.log(`Recipe Server running on port ${PORT}`);
 });
+
+// ------------
+module.exports = app;
+// -----------
